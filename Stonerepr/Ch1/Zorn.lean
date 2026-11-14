@@ -29,8 +29,8 @@ lemma chain_union_is_proper (F : MyFilter B) (C : Set (Set B))
   (hC_chain : IsChain (· ⊆ ·) C)
   (hC_nonempty : C.Nonempty) :
   ∃ C_star : MyFilter B, C_star.carrier = ⋃₀ C ∧ C_star.IsProper ∧ F.carrier ⊆ ⋃₀ C := by
-    have h_is_filter : ∀ S ∈ C, ∃ G : MyFilter B, G.carrier = S ∧ G.IsProper ∧ F.carrier ⊆ S := hC_sub
-
+    have h_is_filter :
+        ∀ S ∈ C, ∃ G : MyFilter B, G.carrier = S ∧ G.IsProper ∧ F.carrier ⊆ S := hC_sub
     let C_star : MyFilter B := {
       carrier := ⋃₀ C
       top_mem := by
@@ -103,10 +103,8 @@ lemma chain_union_is_proper (F : MyFilter B) (C : Set (Set B))
 -- Lause 2.4.3 (Ultrafiltterilause)
 theorem ultrafilter_exists (F : MyFilter B) (hF : F.IsProper) :
   ∃ U : MyUltraFilter B, F.carrier ⊆ U.carrier := by
-
   -- Kokoelma 𝓕 = ProperFiltersContaining F
   let 𝓕 := ProperFiltersContaining F
-
   -- Sovelletaan Zornin lemmaa joukkoon 𝓕
   have hzorn := zorn_subset 𝓕 (by
     intro C hC_sub hC_chain
@@ -123,10 +121,8 @@ theorem ultrafilter_exists (F : MyFilter B) (hF : F.IsProper) :
       refine ⟨?_, fun S hS ↦ Set.subset_sUnion_of_mem hS⟩
       use C_star
   )
-
   -- Zornin lemma 2.4.2 antaa maksimaalisen alkion U joukosta 𝓕
   rcases hzorn with ⟨U_carrier, ⟨G, hG_eq, hG_proper, hF_sub_U⟩, hMax⟩
-
   -- Osoitetaan, että tämä maksimaalinen aito filtteri G on ultrafiltteri
   let U : MyUltraFilter B := {
     toMyFilter := G
@@ -146,8 +142,9 @@ theorem ultrafilter_exists (F : MyFilter B) (hF : F.IsProper) :
         have hU_sub_U' : U_carrier ⊆ U'.carrier := by
           exact le_of_eq_of_le (id (Eq.symm hG_eq)) hG_sub_U'
         -- ... jolloin inkluusion suhteen maksimaalisuudesta (hMax) seuraa U' = G.
-        sorry
+        have h_eq : U'.carrier = U_carrier :=
+          Set.Subset.antisymm (hMax hU'_in_𝓕 hU_sub_U') hU_sub_U'
+        exact hG_eq ▸ h_eq
   }
-
   use U
   exact le_of_le_of_eq hF_sub_U (id (Eq.symm hG_eq))

@@ -47,14 +47,59 @@ lemma proper_iff_bot_not_mem (F : MyFilter L) : F.IsProper ↔ (⊥ : L) ∉ F :
     rw [← hc] at h1
     contradiction
 
-instance [AlgebraicLattice L] : Std.Commutative (fun (a b : L) => a ⊓ b) where
+instance : Std.Commutative (fun (a b : L) => a ⊓ b) where
   comm := AlgebraicLattice.inf_comm
 
-instance [AlgebraicLattice L] : Std.Associative (fun (a b : L) => a ⊓ b) where
-  assoc := by exact fun a b c ↦ Eq.symm (AlgebraicLattice.inf_assoc a b c)
+instance : Std.Associative (fun (a b : L) => a ⊓ b) where
+  assoc := fun a b c ↦ Eq.symm (AlgebraicLattice.inf_assoc a b c)
 
 def finsetInf (L : Type) [BoundedAlgebraicLattice L] (T : Finset L) : L :=
-  T.fold (· ⊓ ·) ⊤ id
+  T.fold (· ⊓ ·) (⊤ : L) id
+
+lemma finsetInf_empty (L : Type) [BoundedAlgebraicLattice L] :
+    finsetInf L ∅ = (⊤ : L) := rfl
+
+lemma finsetInf_singleton (L : Type) [BoundedAlgebraicLattice L] (a : L) :
+    finsetInf L {a} = a := by
+  simp [finsetInf, BoundedAlgebraicLattice.infId]
+
+lemma finsetInf_insert_of_notMem (L : Type) [BoundedAlgebraicLattice L] [DecidableEq L]
+    {a : L} {s : Finset L} (ha : a ∉ s) :
+    finsetInf L (insert a s) = a ⊓ finsetInf L s :=
+  Finset.fold_insert ha
+
+lemma finsetInf_le_of_mem (L : Type) [BoundedAlgebraicLattice L]
+    {s : Finset L} {a : L} (ha : a ∈ s) :
+    finsetInf L s ≤ a := by
+  classical
+  induction s using Finset.induction with
+  | empty => exact absurd ha (Finset.notMem_empty a)
+  | insert x s hx ih =>
+    rw [finsetInf_insert_of_notMem L hx]
+    rcases Finset.mem_insert.mp ha with rfl | has
+    · exact OrderLattice.inf_le_left a (finsetInf L s)
+    · exact MyPartialOrder.le_trans (x ⊓ finsetInf L s) (finsetInf L s) a
+        (OrderLattice.inf_le_right x (finsetInf L s)) (ih has)
+
+lemma finsetInf_insert (L : Type) [BoundedAlgebraicLattice L] [DecidableEq L]
+    (a : L) (s : Finset L) :
+    finsetInf L (insert a s) = a ⊓ finsetInf L s := by
+  by_cases ha : a ∈ s
+  · rw [Finset.insert_eq_of_mem ha]
+    have hle : finsetInf L s ≤ a := finsetInf_le_of_mem L ha
+    have heq : finsetInf L s ⊓ a = finsetInf L s := (ord_iff_inf (finsetInf L s) a).mp hle
+    rw [AlgebraicLattice.inf_comm a (finsetInf L s), heq]
+  · exact finsetInf_insert_of_notMem L ha
+
+lemma finsetInf_union (L : Type) [BoundedAlgebraicLattice L] [DecidableEq L]
+    (Ta Tb : Finset L) :
+    finsetInf L (Ta ∪ Tb) = finsetInf L Ta ⊓ finsetInf L Tb := by
+  induction Ta using Finset.induction with
+  | empty =>
+    rw [Finset.empty_union, finsetInf_empty, AlgebraicLattice.inf_comm (⊤ : L),
+      BoundedAlgebraicLattice.infId]
+  | insert a Ta _ ih =>
+    rw [Finset.insert_union, finsetInf_insert, finsetInf_insert, ih, AlgebraicLattice.inf_assoc]
 
 def HasFIP (L : Type) [BoundedAlgebraicLattice L] (S : Set L) : Prop :=
   ∀ (T : Finset L), (∀ x ∈ T, x ∈ S) → finsetInf L T ≠ (⊥ : L)
@@ -66,73 +111,55 @@ def filterGenSetFromSet (L : Type) [BoundedAlgebraicLattice L] (S : Set L) : Set
 def filterGenSet (F : MyFilter B) (a : B) : Set B :=
   {x : B | ∃ f ∈ F, f ⊓ a ≤ x}
 
-open Classical
-
+open Classical in
 def filtGen (L : Type) [BoundedAlgebraicLattice L] (S : Set L) (hS : S.Nonempty) : MyFilter L where
   carrier := filterGenSetFromSet L S
   top_mem := by
-    have h : ∃ (T : Finset L), (∀ s ∈ T, s ∈ S) ∧ finsetInf L T ≤ (⊤ : L) := by
-      have hex : ∃ x : L, x ∈ S := by
-        exact Set.nonempty_def.mp hS
-      rcases hex with ⟨s, hs⟩
-      have h2 : s ≤ (⊤ : L) := by
-        have h3 : s ⊔ (⊤ : L) = (⊤ : L) := by
-          exact BoundedAlgebraicLattice.supTop s
-        exact (ord_iff_sup s ⊤).mpr h3
-      use {s}
-      constructor
-      · intro s' hs'
-        have haux : s' = s := by
-          exact List.mem_singleton.mp hs'
-        rw [haux]
-        exact hs
-      · have haux : finsetInf L {s} = s := by
-          exact (Eq.to_iff (congrArg (Eq (finsetInf L {s})) h2)).mpr rfl
-        rw [haux]
-        exact h2
-    exact Set.mem_preimage.mp h
+    rcases hS with ⟨s, hs⟩
+    refine ⟨{s}, ?_, ?_⟩
+    · intro s' hs'
+      rw [Finset.mem_singleton.mp hs']
+      exact hs
+    · rw [finsetInf_singleton]
+      exact (ord_iff_sup s (⊤ : L)).mpr (BoundedAlgebraicLattice.supTop s)
   upwards_closed := by
-    intro a b ha hab
-    have habo : a ≤ b := by
-      exact (ord_iff_sup a b).mpr hab
-    have hex : ∃ (T : Finset L), (∀s ∈ T, s ∈ S) ∧ finsetInf L T ≤ a := by
-      exact Set.inter_nonempty.mp ha
-    rcases hex with ⟨hT, ⟨hTt1, hTt2⟩⟩
-    have hex2 : ∃ (T : Finset L), (∀ s ∈ T, s ∈ S) ∧ finsetInf L T ≤ b := by
-      use hT
-      constructor
-      · exact hTt1
-      · exact MyPartialOrder.le_trans (finsetInf L hT) a b hTt2 habo
-    exact Set.mem_of_subset_of_mem (fun ⦃a⦄ a_1 ↦ a_1) hex2
+    intro a b ⟨T, hTs, hTa⟩ hab
+    exact ⟨T, hTs, MyPartialOrder.le_trans (finsetInf L T) a b hTa ((ord_iff_sup a b).mpr hab)⟩
   inf_mem := by
-    intro a b ha hb
-    have hexa : ∃ (T : Finset L), (∀ s ∈ T, s ∈ S) ∧ finsetInf L T ≤ a := by
-      exact Set.inter_nonempty.mp ha
-    have hexb : ∃ (T : Finset L), (∀ s ∈ T, s ∈ S) ∧ finsetInf L T ≤ b := by
-      exact Set.inter_nonempty.mp hb
-    rcases hexa with ⟨Ta, ⟨Ta1, Ta2⟩⟩
-    rcases hexb with ⟨Tb, ⟨Tb1, Tb2⟩⟩
-    have haux : (finsetInf L Ta) ⊓ (finsetInf L Tb) ≤ (finsetInf L Ta) := by
-      exact OrderLattice.inf_le_left (finsetInf L Ta) (finsetInf L Tb)
-    have hbux : (finsetInf L Ta) ⊓ (finsetInf L Tb) ≤ (finsetInf L Tb) := by
-      exact OrderLattice.inf_le_right (finsetInf L Ta) (finsetInf L Tb)
-    have haa : (finsetInf L Ta) ⊓ (finsetInf L Tb) ≤ a := by
-      exact MyPartialOrder.le_trans (finsetInf L Ta ⊓ finsetInf L Tb) (finsetInf L Ta) a haux Ta2
-    have hbb : (finsetInf L Ta) ⊓ (finsetInf L Tb) ≤ b := by
-      exact MyPartialOrder.le_trans (finsetInf L Ta ⊓ finsetInf L Tb) (finsetInf L Tb) b hbux Tb2
-    have hh : ∃ (T : Finset L), (∀ s ∈ T, s ∈ S) ∧ finsetInf L T ≤ a ⊓ b := by
-      use Ta ∪ Tb
-      constructor
-      · intro s hs
-        rcases Finset.mem_union.mp hs with hsTa | hsTb
-        · apply Ta1
-          apply hsTa
-        · apply Tb1
-          exact hsTb
-      have ha : (finsetInf L (Ta ∪ Tb)) = finsetInf L Ta ⊓ finsetInf L Tb := by
-        sorry
-      sorry
-    exact Set.mem_preimage.mp hh
+    intro a b ⟨Ta, hTa1, hTa2⟩ ⟨Tb, hTb1, hTb2⟩
+    refine ⟨Ta ∪ Tb, ?_, ?_⟩
+    · intro s hs
+      rcases Finset.mem_union.mp hs with hsTa | hsTb
+      · exact hTa1 s hsTa
+      · exact hTb1 s hsTb
+    · rw [finsetInf_union]
+      have haa : finsetInf L Ta ⊓ finsetInf L Tb ≤ a :=
+        MyPartialOrder.le_trans _ (finsetInf L Ta) a
+          (OrderLattice.inf_le_left (finsetInf L Ta) (finsetInf L Tb)) hTa2
+      have hbb : finsetInf L Ta ⊓ finsetInf L Tb ≤ b :=
+        MyPartialOrder.le_trans _ (finsetInf L Tb) b
+          (OrderLattice.inf_le_right (finsetInf L Ta) (finsetInf L Tb)) hTb2
+      exact OrderLattice.le_inf a b (finsetInf L Ta ⊓ finsetInf L Tb) haa hbb
+
+-- Lemma 2.3.3 (2): ⟨S⟩ on aito joss S:llä on äärellisten kohtaamisten ominaisuus
+theorem filtGen_isProper_iff_hasFIP (L : Type) [BoundedAlgebraicLattice L]
+    (S : Set L) (hS : S.Nonempty) :
+    (filtGen L S hS).IsProper ↔ HasFIP L S := by
+  rw [proper_iff_bot_not_mem]
+  constructor
+  · intro hbot T hTs hinf_bot
+    apply hbot
+    refine ⟨T, hTs, ?_⟩
+    rw [hinf_bot]
+    exact MyPartialOrder.le_refl (⊥ : L)
+  · intro hfip ⟨T, hTs, hT_le_bot⟩
+    apply hfip T hTs
+    have hbot_le : (⊥ : L) ≤ finsetInf L T := by
+      have haux : (⊥ : L) ⊓ finsetInf L T = (⊥ : L) := by
+        rw [AlgebraicLattice.inf_comm]
+        exact BoundedAlgebraicLattice.infBot (finsetInf L T)
+      exact (ord_iff_inf (⊥ : L) (finsetInf L T)).mpr haux
+    exact MyPartialOrder.le_antisymm (finsetInf L T) (⊥ : L) hT_le_bot hbot_le
 
 def filterGen (F : MyFilter B) (a : B) : MyFilter B where
   carrier := filterGenSet F a
@@ -317,6 +344,10 @@ theorem ultrafilter_char_1
       rw [← ha] at hcc
       contradiction
     contradiction
+
+lemma ultrafilter_mem_iff_compl_notMem (U : MyUltraFilter B) (a : B) :
+    a ∈ U.carrier ↔ aᶜ ∉ U.carrier :=
+  ultrafilter_char_1 U a aᶜ (MyBooleanAlgebra.compl_isComplement a)
 
 -- Lause 2.3.6 (2)
 def ultrafilter_char_2
