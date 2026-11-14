@@ -7,6 +7,8 @@
 
 A Lean 4 formalization (`v4.34.0-rc1` + Mathlib) of the algebraic and topological machinery behind Marshall H. Stone's 1936 representation theorem, accompanying my in-progress B.Sc thesis (currently private) (*Stonen esityslause Boolen algebroille*).
 
+> `(* scope *)` Intended as an approximate machine-checked verifier for the thesis proofs—not an authoritative reference or a reusable library.
+
 ---
 
 ## Structure
