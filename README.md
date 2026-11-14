@@ -1,13 +1,43 @@
-# stonerepr
+# `stonerepr`
 
-## GitHub configuration
+```ml
+(* Stone's Representation Theorem for Boolean Algebras *)
+⊢ Φ : B ≅ Clopen (Ult B)
+```
 
-To set up your new GitHub repository, follow these steps:
+A Lean 4 formalization (`v4.34.0-rc1` + Mathlib) of the algebraic and topological machinery behind Marshall H. Stone's 1936 representation theorem, accompanying my BSc. thesis (*Stonen esityslause Boolen algebroille*).
 
-* Under your repository name, click **Settings**.
-* In the **Actions** section of the sidebar, click "General".
-* Check the box **Allow GitHub Actions to create and approve pull requests**.
-* Click the **Pages** section of the settings sidebar.
-* In the **Source** dropdown menu, select "GitHub Actions".
+---
 
-After following the steps above, you can remove this section from the README file.
+## Structure
+
+```text
+Stonerepr/
+├── Ch1/
+│   ├── Algebra.lean   -- Posets, duals, order ↔ algebraic lattices, MyBooleanAlgebra, BooleanHom
+│   ├── Filter.lean    -- MyFilter, HasFIP, filtGen, MyUltraFilter, ultrafilter characterizations
+│   └── Zorn.lean      -- Zorn's lemma ⊢ ultrafilter_exists
+└── Ch2/
+    └── Topology.lean  -- Ult B, stoneBasis, T2Space, CompactSpace, ult_isStoneSpace, stone_representation
+```
+
+### Main Results
+
+| Module | Declaration | Statement |
+| :--- | :--- | :--- |
+| `Ch1.Algebra` | `orderLatticeToAlgebraicLattice` | `OrderLattice P → AlgebraicLattice P` |
+| `Ch1.Algebra` | `complement_unique` | Uniqueness of complements in `MyBooleanAlgebra` |
+| `Ch1.Filter` | `filtGen_isProper_iff_hasFIP` | `(filtGen L S hS).IsProper ↔ HasFIP L S` |
+| `Ch1.Filter` | `ultrafilter_char_1`, `_2` | `a ∈ U.carrier ↔ aᶜ ∉ U.carrier` |
+| `Ch1.Zorn` | `ultrafilter_exists` | Every proper filter extends to a `MyUltraFilter` |
+| `Ch2.Topology` | `ult_isStoneSpace` | `IsStoneSpace (Ult B)` (Hausdorff, compact, clopen basis) |
+| `Ch2.Topology` | `stone_representation` | `Function.Bijective (stonePhi B)` |
+
+---
+
+## Build
+
+```sh
+lake exe cache get   # fetch prebuilt Mathlib .oleans
+lake build
+```
