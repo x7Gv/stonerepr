@@ -3,15 +3,15 @@ import Mathlib.Topology.Separation.Hausdorff
 import Mathlib.Topology.Compactness.Compact
 import Stonerepr.Ch1
 
-variable {B : Type} [MyBooleanAlgebra B]
+variable {B : Type} [ThesisBooleanAlgebra B]
 
 -- Määritelmä 3.2.2: Ultrafilttereiden joukko Ult(B) ja kanta-alkiot S_a
-abbrev Ult (B : Type) [MyBooleanAlgebra B] := MyUltraFilter B
+abbrev Ult (B : Type) [ThesisBooleanAlgebra B] := ThesisUltrafilter B
 
 def stoneBasic (a : B) : Set (Ult B) :=
   {U | a ∈ U.carrier}
 
-def stoneBasis (B : Type) [MyBooleanAlgebra B] : Set (Set (Ult B)) :=
+def stoneBasis (B : Type) [ThesisBooleanAlgebra B] : Set (Set (Ult B)) :=
   Set.range (stoneBasic (B := B))
 
 -- Lemma 3.2.3: Boolen operaatioiden ja kanta-alkioiden vastaavuudet
@@ -34,7 +34,7 @@ lemma stoneBasic_bot : stoneBasic (⊥ : B) = ∅ := by
     have hc : (⊥ : B) ∈ U.carrier := by
       exact Set.mem_preimage.mp uBot
     have hc' : (⊥ : B) ∉ U.carrier := by
-      apply (proper_iff_bot_not_mem U.toMyFilter).mp
+      apply (proper_iff_bot_not_mem U.toThesisFilter).mp
       apply U.proper
     contradiction
   · intro h
@@ -58,7 +58,7 @@ lemma stoneBasic_sup (a b : B) :
         intro c
         have hh : ∀ c : B, c = (cᶜ)ᶜ := by
           intro c
-          exact Eq.symm <| MyBooleanAlgebra.compl_compl c
+          exact Eq.symm <| ThesisBooleanAlgebra.compl_compl c
         nth_rw 2 [hh c]
         exact ultrafilter_mem_iff_compl_notMem U cᶜ
       constructor
@@ -67,23 +67,23 @@ lemma stoneBasic_sup (a b : B) :
       · apply (hac b).mpr
         exact hh.2
     have h3 : aᶜ ⊓ bᶜ ∈ U.carrier := by
-      apply MyFilter.inf_mem
+      apply ThesisFilter.inf_mem
       · exact hh''.1
       · exact hh''.2
     have h4 : (a ⊔ b)ᶜ ∈ U.carrier := by
       have hc : aᶜ ⊓ bᶜ = (a ⊔ b)ᶜ := by
-        exact Eq.symm (MyBooleanAlgebra.compl_sup_eq a b)
+        exact Eq.symm (ThesisBooleanAlgebra.compl_sup_eq a b)
       rw [← hc]
       exact h3
     have hc : (⊥ : B) ∈ U.carrier := by
       have hh : (a ⊔ b) ⊓ (a ⊔ b)ᶜ ∈ U.carrier := by
         exact U.inf_mem (a ⊔ b) (a ⊔ b)ᶜ hab h4
       have hh' : (⊥ : B) = (a ⊔ b) ⊓ (a ⊔ b)ᶜ := by
-        exact Eq.symm (MyBooleanAlgebra.compl_inf (a ⊔ b))
+        exact Eq.symm (ThesisBooleanAlgebra.compl_inf (a ⊔ b))
       rw [hh']
       exact hh
     have hc' : ¬ ((⊥ : B) ∈ U.carrier) := by
-      apply (proper_iff_bot_not_mem U.toMyFilter).mp
+      apply (proper_iff_bot_not_mem U.toThesisFilter).mp
       apply U.proper
     contradiction
   · intro h
@@ -134,7 +134,7 @@ lemma stoneBasic_compl (a : B) :
   rw [ultrafilter_mem_iff_compl_notMem, not_not]
 
 -- Stone-avaruuden topologia kanta-alkioiden virittämänä
-instance instTopologicalSpaceUlt (B : Type) [MyBooleanAlgebra B] :
+instance instTopologicalSpaceUlt (B : Type) [ThesisBooleanAlgebra B] :
     TopologicalSpace (Ult B) :=
   TopologicalSpace.generateFrom (stoneBasis B)
 
@@ -160,12 +160,12 @@ lemma stoneBasic_isClopen (a : B) : IsClopen (stoneBasic a) :=
   ⟨stoneBasic_isClosed a, stoneBasic_isOpen a⟩
 
 -- Lemma 3.2.5: Ult(B) on Hausdorffin avaruus
-instance instT2SpaceUlt (B : Type) [MyBooleanAlgebra B] : T2Space (Ult B) := by
+instance instT2SpaceUlt (B : Type) [ThesisBooleanAlgebra B] : T2Space (Ult B) := by
   refine ⟨fun U₁ U₂ hne ↦ ?_⟩
   have hcar : U₁.carrier ≠ U₂.carrier := fun h ↦ hne (by
     cases U₁; cases U₂
     congr 1
-    exact MyFilter.ext _ _ h)
+    exact ThesisFilter.ext _ _ h)
   have hsep : (∃ a ∈ U₁.carrier, a ∉ U₂.carrier) ∨ (∃ a ∈ U₂.carrier, a ∉ U₁.carrier) := by
     by_contra h
     push Not at h
@@ -176,7 +176,7 @@ instance instT2SpaceUlt (B : Type) [MyBooleanAlgebra B] : T2Space (Ult B) := by
       exact ha2 ((ultrafilter_mem_iff_compl_notMem U₂ a).mpr hc)
     refine ⟨stoneBasic a, stoneBasic (aᶜ), stoneBasic_isOpen a, stoneBasic_isOpen (aᶜ),
       ha1, ha2c, ?_⟩
-    rw [Set.disjoint_iff_inter_eq_empty, ← stoneBasic_inf, MyBooleanAlgebra.compl_inf,
+    rw [Set.disjoint_iff_inter_eq_empty, ← stoneBasic_inf, ThesisBooleanAlgebra.compl_inf,
       stoneBasic_bot]
   · have ha1c : aᶜ ∈ U₁.carrier := by
       by_contra hc
@@ -184,9 +184,9 @@ instance instT2SpaceUlt (B : Type) [MyBooleanAlgebra B] : T2Space (Ult B) := by
     refine ⟨stoneBasic (aᶜ), stoneBasic a, stoneBasic_isOpen (aᶜ), stoneBasic_isOpen a,
       ha1c, ha2, ?_⟩
     rw [Set.disjoint_iff_inter_eq_empty, ← stoneBasic_inf, AlgebraicLattice.inf_comm,
-      MyBooleanAlgebra.compl_inf, stoneBasic_bot]
+      ThesisBooleanAlgebra.compl_inf, stoneBasic_bot]
 
-private lemma finsetInf_mem_of_mem (F : MyFilter B) (T : Finset B)
+private lemma finsetInf_mem_of_mem (F : ThesisFilter B) (T : Finset B)
     (hT : ∀ b ∈ T, b ∈ F.carrier) : finsetInf B T ∈ F.carrier := by
   classical
   induction T using Finset.induction with
@@ -197,7 +197,7 @@ private lemma finsetInf_mem_of_mem (F : MyFilter B) (T : Finset B)
       (ih fun b hb ↦ hT b (Finset.mem_insert_of_mem hb))
 
 -- Lemma 3.2.6: Ult(B) on kompakti
-instance instCompactSpaceUlt (B : Type) [MyBooleanAlgebra B] : CompactSpace (Ult B) := by
+instance instCompactSpaceUlt (B : Type) [ThesisBooleanAlgebra B] : CompactSpace (Ult B) := by
   refine ⟨isCompact_iff_finite_subfamily_closed.mpr ?_⟩
   intro ι t ht_closed h_all
   by_contra! h_fin
@@ -244,8 +244,8 @@ instance instCompactSpaceUlt (B : Type) [MyBooleanAlgebra B] : CompactSpace (Ult
         have hUi : U ∈ t (Classical.choose (h_choose b hb)) := Set.mem_iInter₂.mp hU _ hi
         exact (Classical.choose_spec (h_choose b hb)) hUi
       intro hbot
-      have hbot_U : (⊥ : B) ∈ U.carrier := hbot ▸ finsetInf_mem_of_mem U.toMyFilter T hT_U
-      exact (proper_iff_bot_not_mem U.toMyFilter).mp U.proper hbot_U
+      have hbot_U : (⊥ : B) ∈ U.carrier := hbot ▸ finsetInf_mem_of_mem U.toThesisFilter T hT_U
+      exact (proper_iff_bot_not_mem U.toThesisFilter).mp U.proper hbot_U
     have h_proper : (filtGen B A hA_nonempty).IsProper :=
       (filtGen_isProper_iff_hasFIP B A hA_nonempty).mpr hA_fip
     rcases ultrafilter_exists (filtGen B A hA_nonempty) h_proper with ⟨U, hU⟩
@@ -257,7 +257,7 @@ instance instCompactSpaceUlt (B : Type) [MyBooleanAlgebra B] : CompactSpace (Ult
       · rw [Finset.mem_singleton.mp hs]
         exact Set.mem_iUnion.mpr ⟨i, hb⟩
       · rw [finsetInf_singleton]
-        exact MyPartialOrder.le_refl b
+        exact ThesisPartialOrder.le_refl b
     rw [h_all] at hU_mem
     exact hU_mem
   · have h_empty : IsEmpty ι := not_nonempty_iff.mp hι
@@ -284,8 +284,8 @@ theorem ult_isStoneSpace : IsStoneSpace (Ult B) where
 -- Määritelmä 3.3.1: Suljettu-avointen joukkojen Boolen alialgebra
 abbrev ClopenSet (X : Type) [TopologicalSpace X] := {A : Set X // IsClopen A}
 
-instance instMyBooleanAlgebraClopenSet (X : Type) [TopologicalSpace X] :
-    MyBooleanAlgebra (ClopenSet X) where
+instance instThesisBooleanAlgebraClopenSet (X : Type) [TopologicalSpace X] :
+    ThesisBooleanAlgebra (ClopenSet X) where
   sup A B := ⟨A.1 ∪ B.1, A.2.union B.2⟩
   inf A B := ⟨A.1 ∩ B.1, A.2.inter B.2⟩
   top := ⟨Set.univ, isClopen_univ⟩
@@ -311,18 +311,18 @@ instance instMyBooleanAlgebraClopenSet (X : Type) [TopologicalSpace X] :
   inf_distrib A B C := Subtype.ext (Set.inter_union_distrib_left A.1 B.1 C.1)
 
 -- Lause 3.3.2: Stonen esityslause Boolen algebroille
-def stonePhi (B : Type) [MyBooleanAlgebra B] : BooleanHom B (ClopenSet (Ult B)) where
+def stonePhi (B : Type) [ThesisBooleanAlgebra B] : BooleanHom B (ClopenSet (Ult B)) where
   toFun b := ⟨stoneBasic b, stoneBasic_isClopen b⟩
   map_sup a b := Subtype.ext (stoneBasic_sup a b)
   map_inf a b := Subtype.ext (stoneBasic_inf a b)
   map_comp a {a'} ha := by
-    have ha' : a' = aᶜ := MyBooleanAlgebra.compl_eq_of_isComplement ha
+    have ha' : a' = aᶜ := ThesisBooleanAlgebra.compl_eq_of_isComplement ha
     subst ha'
     refine ⟨Subtype.ext ?_, Subtype.ext ?_⟩
     · change stoneBasic a ∪ stoneBasic (aᶜ) = Set.univ
-      rw [← stoneBasic_sup, MyBooleanAlgebra.compl_sup, stoneBasic_top]
+      rw [← stoneBasic_sup, ThesisBooleanAlgebra.compl_sup, stoneBasic_top]
     · change stoneBasic a ∩ stoneBasic (aᶜ) = ∅
-      rw [← stoneBasic_inf, MyBooleanAlgebra.compl_inf, stoneBasic_bot]
+      rw [← stoneBasic_inf, ThesisBooleanAlgebra.compl_inf, stoneBasic_bot]
 
 private lemma sep_ultrafilter_of_not_le {a b : B} (hnot : ¬(a ≤ b)) :
     ∃ U : Ult B, a ∈ U.carrier ∧ b ∉ U.carrier := by
@@ -332,8 +332,8 @@ private lemma sep_ultrafilter_of_not_le {a b : B} (hnot : ¬(a ≤ b)) :
     have ha : a = a ⊓ b := by
       calc
         a = a ⊓ (⊤ : B) := (BoundedAlgebraicLattice.infId a).symm
-        _ = a ⊓ (b ⊔ bᶜ) := by rw [MyBooleanAlgebra.compl_sup]
-        _ = (a ⊓ b) ⊔ (a ⊓ bᶜ) := MyBooleanAlgebra.inf_distrib a b (bᶜ)
+        _ = a ⊓ (b ⊔ bᶜ) := by rw [ThesisBooleanAlgebra.compl_sup]
+        _ = (a ⊓ b) ⊔ (a ⊓ bᶜ) := ThesisBooleanAlgebra.inf_distrib a b (bᶜ)
         _ = (a ⊓ b) ⊔ (⊥ : B) := by rw [hbot]
         _ = a ⊓ b := BoundedAlgebraicLattice.supId (a ⊓ b)
     exact (ord_iff_inf a b).mpr ha.symm
@@ -361,16 +361,16 @@ private lemma sep_ultrafilter_of_not_le {a b : B} (hnot : ¬(a ≤ b)) :
         rw [AlgebraicLattice.inf_comm]
         exact BoundedAlgebraicLattice.infBot (a ⊓ bᶜ)
       exact (ord_iff_inf (⊥ : B) (a ⊓ bᶜ)).mpr haux
-    exact hne (MyPartialOrder.le_antisymm (a ⊓ bᶜ) (⊥ : B) hle hbot_le)
+    exact hne (ThesisPartialOrder.le_antisymm (a ⊓ bᶜ) (⊥ : B) hle hbot_le)
   have h_proper : (filtGen B S hS).IsProper :=
     (filtGen_isProper_iff_hasFIP B S hS).mpr hFIP
   rcases ultrafilter_exists (filtGen B S hS) h_proper with ⟨U, hU⟩
   have haU : a ∈ U.carrier := hU ⟨{a}, fun s hs ↦ by
     rw [Finset.mem_singleton.mp hs]; exact Set.mem_insert a {bᶜ},
-    by rw [finsetInf_singleton]; exact MyPartialOrder.le_refl a⟩
+    by rw [finsetInf_singleton]; exact ThesisPartialOrder.le_refl a⟩
   have hbcU : bᶜ ∈ U.carrier := hU ⟨{bᶜ}, fun s hs ↦ by
     rw [Finset.mem_singleton.mp hs]; exact Set.mem_insert_of_mem a rfl,
-    by rw [finsetInf_singleton]; exact MyPartialOrder.le_refl (bᶜ)⟩
+    by rw [finsetInf_singleton]; exact ThesisPartialOrder.le_refl (bᶜ)⟩
   exact ⟨U, haU, fun hbU ↦
     (ultrafilter_mem_iff_compl_notMem U b).mp hbU hbcU⟩
 
@@ -380,7 +380,7 @@ theorem stonePhi_injective : Function.Injective (stonePhi B) := by
   have h_not_le : ¬(a ≤ b) ∨ ¬(b ≤ a) := by
     by_contra h
     push Not at h
-    exact hne (MyPartialOrder.le_antisymm a b h.1 h.2)
+    exact hne (ThesisPartialOrder.le_antisymm a b h.1 h.2)
   have hset : stoneBasic a = stoneBasic b := congrArg Subtype.val hab
   rcases h_not_le with h | h
   · rcases sep_ultrafilter_of_not_le h with ⟨U, haU, hbU⟩
@@ -396,7 +396,7 @@ private instance : Std.Commutative (fun (a b : B) => a ⊔ b) where
 private instance : Std.Associative (fun (a b : B) => a ⊔ b) where
   assoc a b c := (AlgebraicLattice.sup_assoc a b c).symm
 
-private def finsetSup (B : Type) [MyBooleanAlgebra B] (K : Finset B) : B :=
+private def finsetSup (B : Type) [ThesisBooleanAlgebra B] (K : Finset B) : B :=
   K.fold (· ⊔ ·) (⊥ : B) id
 
 private lemma stoneBasic_finsetSup (K : Finset B) :

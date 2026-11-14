@@ -4,34 +4,34 @@ import Stonerepr.Ch1.Algebra
 import Stonerepr.Ch1.Filter
 
 variable {L : Type} [BoundedAlgebraicLattice L]
-variable {B : Type} [MyBooleanAlgebra B]
+variable {B : Type} [ThesisBooleanAlgebra B]
 
 
 @[ext]
-lemma MyFilter.ext {B : Type} [BoundedAlgebraicLattice B] (F G : MyFilter B)
+lemma ThesisFilter.ext {B : Type} [BoundedAlgebraicLattice B] (F G : ThesisFilter B)
   (h : F.carrier = G.carrier) : F = G := by
   cases F
   cases G
   simp_all
 
--- Kytketään MyFilter Mathlibin järjestysteoriaan
-instance {B : Type} [BoundedAlgebraicLattice B] : PartialOrder (MyFilter B) where
+-- Kytketään ThesisFilter Mathlibin järjestysteoriaan
+instance {B : Type} [BoundedAlgebraicLattice B] : PartialOrder (ThesisFilter B) where
   le F G := F.carrier ⊆ G.carrier
   le_refl F := Set.Subset.refl F.carrier
   le_trans F G H hFG hGH := Set.Subset.trans hFG hGH
-  le_antisymm F G hFG hGF := MyFilter.ext F G (Set.Subset.antisymm hFG hGF)
+  le_antisymm F G hFG hGF := ThesisFilter.ext F G (Set.Subset.antisymm hFG hGF)
 
-def ProperFiltersContaining (F : MyFilter B) : Set (Set B) :=
-  {S | ∃ G : MyFilter B, G.carrier = S ∧ G.IsProper ∧ F.carrier ⊆ S}
+def ProperFiltersContaining (F : ThesisFilter B) : Set (Set B) :=
+  {S | ∃ G : ThesisFilter B, G.carrier = S ∧ G.IsProper ∧ F.carrier ⊆ S}
 
-lemma chain_union_is_proper (F : MyFilter B) (C : Set (Set B))
+lemma chain_union_is_proper (F : ThesisFilter B) (C : Set (Set B))
   (hC_sub : C ⊆ ProperFiltersContaining F)
   (hC_chain : IsChain (· ⊆ ·) C)
   (hC_nonempty : C.Nonempty) :
-  ∃ C_star : MyFilter B, C_star.carrier = ⋃₀ C ∧ C_star.IsProper ∧ F.carrier ⊆ ⋃₀ C := by
+  ∃ C_star : ThesisFilter B, C_star.carrier = ⋃₀ C ∧ C_star.IsProper ∧ F.carrier ⊆ ⋃₀ C := by
     have h_is_filter :
-        ∀ S ∈ C, ∃ G : MyFilter B, G.carrier = S ∧ G.IsProper ∧ F.carrier ⊆ S := hC_sub
-    let C_star : MyFilter B := {
+        ∀ S ∈ C, ∃ G : ThesisFilter B, G.carrier = S ∧ G.IsProper ∧ F.carrier ⊆ S := hC_sub
+    let C_star : ThesisFilter B := {
       carrier := ⋃₀ C
       top_mem := by
         rcases hC_nonempty with ⟨S, hS⟩
@@ -101,8 +101,8 @@ lemma chain_union_is_proper (F : MyFilter B) (C : Set (Set B))
       exact Set.Subset.trans hF_sub_S (Set.subset_sUnion_of_mem hS)
 
 -- Lause 2.4.3 (Ultrafiltterilause)
-theorem ultrafilter_exists (F : MyFilter B) (hF : F.IsProper) :
-  ∃ U : MyUltraFilter B, F.carrier ⊆ U.carrier := by
+theorem ultrafilter_exists (F : ThesisFilter B) (hF : F.IsProper) :
+  ∃ U : ThesisUltrafilter B, F.carrier ⊆ U.carrier := by
   -- Kokoelma 𝓕 = ProperFiltersContaining F
   let 𝓕 := ProperFiltersContaining F
   -- Sovelletaan Zornin lemmaa joukkoon 𝓕
@@ -124,8 +124,8 @@ theorem ultrafilter_exists (F : MyFilter B) (hF : F.IsProper) :
   -- Zornin lemma 2.4.2 antaa maksimaalisen alkion U joukosta 𝓕
   rcases hzorn with ⟨U_carrier, ⟨G, hG_eq, hG_proper, hF_sub_U⟩, hMax⟩
   -- Osoitetaan, että tämä maksimaalinen aito filtteri G on ultrafiltteri
-  let U : MyUltraFilter B := {
-    toMyFilter := G
+  let U : ThesisUltrafilter B := {
+    toThesisFilter := G
     proper := hG_proper
     maximal := by
       intro U' hG_sub_U'

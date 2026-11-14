@@ -3,7 +3,7 @@ import Mathlib.Tactic
 import Stonerepr.Ch1.Algebra
 
 -- Määritelmä 2.3.1
-structure MyFilter (L : Type) [BoundedAlgebraicLattice L] where
+structure ThesisFilter (L : Type) [BoundedAlgebraicLattice L] where
   -- Osajoukko: F ⊆ L
   carrier : Set L
   -- Epätyhjyys: ⊤ ∈ F
@@ -14,17 +14,17 @@ structure MyFilter (L : Type) [BoundedAlgebraicLattice L] where
   inf_mem : ∀ a b : L, a ∈ carrier → b ∈ carrier → a ⊓ b ∈ carrier
 
 variable {L : Type} [BoundedAlgebraicLattice L]
-variable {B : Type} [MyBooleanAlgebra B]
+variable {B : Type} [ThesisBooleanAlgebra B]
 
 
-instance : Membership L (MyFilter L) where
+instance : Membership L (ThesisFilter L) where
   mem F x := x ∈ F.carrier
 
-def MyFilter.IsProper (F : MyFilter L) : Prop :=
+def ThesisFilter.IsProper (F : ThesisFilter L) : Prop :=
   F.carrier ≠ Set.univ
 
 -- Lemma 2.3.2
-lemma proper_iff_bot_not_mem (F : MyFilter L) : F.IsProper ↔ (⊥ : L) ∉ F := by
+lemma proper_iff_bot_not_mem (F : ThesisFilter L) : F.IsProper ↔ (⊥ : L) ∉ F := by
   constructor
   · intro f_proper
     by_contra
@@ -32,7 +32,7 @@ lemma proper_iff_bot_not_mem (F : MyFilter L) : F.IsProper ↔ (⊥ : L) ∉ F :
       intro a ha
       have h1 : a ⊔ ⊥ = a := by
         exact BoundedAlgebraicLattice.supId a
-      apply MyFilter.upwards_closed F (⊥ : L) a
+      apply ThesisFilter.upwards_closed F (⊥ : L) a
       · exact Set.mem_preimage.mp this
       rw [AlgebraicLattice.sup_comm]
       exact h1
@@ -78,7 +78,7 @@ lemma finsetInf_le_of_mem (L : Type) [BoundedAlgebraicLattice L]
     rw [finsetInf_insert_of_notMem L hx]
     rcases Finset.mem_insert.mp ha with rfl | has
     · exact OrderLattice.inf_le_left a (finsetInf L s)
-    · exact MyPartialOrder.le_trans (x ⊓ finsetInf L s) (finsetInf L s) a
+    · exact ThesisPartialOrder.le_trans (x ⊓ finsetInf L s) (finsetInf L s) a
         (OrderLattice.inf_le_right x (finsetInf L s)) (ih has)
 
 lemma finsetInf_insert (L : Type) [BoundedAlgebraicLattice L] [DecidableEq L]
@@ -108,11 +108,11 @@ def filterGenSetFromSet (L : Type) [BoundedAlgebraicLattice L] (S : Set L) : Set
   {x : L | ∃ (T : Finset L), (∀ s ∈ T, s ∈ S) ∧ finsetInf L T ≤ x}
 
 -- Lemma 2.3.3
-def filterGenSet (F : MyFilter B) (a : B) : Set B :=
+def filterGenSet (F : ThesisFilter B) (a : B) : Set B :=
   {x : B | ∃ f ∈ F, f ⊓ a ≤ x}
 
 open Classical in
-def filtGen (L : Type) [BoundedAlgebraicLattice L] (S : Set L) (hS : S.Nonempty) : MyFilter L where
+def filtGen (L : Type) [BoundedAlgebraicLattice L] (S : Set L) (hS : S.Nonempty) : ThesisFilter L where
   carrier := filterGenSetFromSet L S
   top_mem := by
     rcases hS with ⟨s, hs⟩
@@ -124,7 +124,7 @@ def filtGen (L : Type) [BoundedAlgebraicLattice L] (S : Set L) (hS : S.Nonempty)
       exact (ord_iff_sup s (⊤ : L)).mpr (BoundedAlgebraicLattice.supTop s)
   upwards_closed := by
     intro a b ⟨T, hTs, hTa⟩ hab
-    exact ⟨T, hTs, MyPartialOrder.le_trans (finsetInf L T) a b hTa ((ord_iff_sup a b).mpr hab)⟩
+    exact ⟨T, hTs, ThesisPartialOrder.le_trans (finsetInf L T) a b hTa ((ord_iff_sup a b).mpr hab)⟩
   inf_mem := by
     intro a b ⟨Ta, hTa1, hTa2⟩ ⟨Tb, hTb1, hTb2⟩
     refine ⟨Ta ∪ Tb, ?_, ?_⟩
@@ -134,10 +134,10 @@ def filtGen (L : Type) [BoundedAlgebraicLattice L] (S : Set L) (hS : S.Nonempty)
       · exact hTb1 s hsTb
     · rw [finsetInf_union]
       have haa : finsetInf L Ta ⊓ finsetInf L Tb ≤ a :=
-        MyPartialOrder.le_trans _ (finsetInf L Ta) a
+        ThesisPartialOrder.le_trans _ (finsetInf L Ta) a
           (OrderLattice.inf_le_left (finsetInf L Ta) (finsetInf L Tb)) hTa2
       have hbb : finsetInf L Ta ⊓ finsetInf L Tb ≤ b :=
-        MyPartialOrder.le_trans _ (finsetInf L Tb) b
+        ThesisPartialOrder.le_trans _ (finsetInf L Tb) b
           (OrderLattice.inf_le_right (finsetInf L Ta) (finsetInf L Tb)) hTb2
       exact OrderLattice.le_inf a b (finsetInf L Ta ⊓ finsetInf L Tb) haa hbb
 
@@ -151,7 +151,7 @@ theorem filtGen_isProper_iff_hasFIP (L : Type) [BoundedAlgebraicLattice L]
     apply hbot
     refine ⟨T, hTs, ?_⟩
     rw [hinf_bot]
-    exact MyPartialOrder.le_refl (⊥ : L)
+    exact ThesisPartialOrder.le_refl (⊥ : L)
   · intro hfip ⟨T, hTs, hT_le_bot⟩
     apply hfip T hTs
     have hbot_le : (⊥ : L) ≤ finsetInf L T := by
@@ -159,9 +159,9 @@ theorem filtGen_isProper_iff_hasFIP (L : Type) [BoundedAlgebraicLattice L]
         rw [AlgebraicLattice.inf_comm]
         exact BoundedAlgebraicLattice.infBot (finsetInf L T)
       exact (ord_iff_inf (⊥ : L) (finsetInf L T)).mpr haux
-    exact MyPartialOrder.le_antisymm (finsetInf L T) (⊥ : L) hT_le_bot hbot_le
+    exact ThesisPartialOrder.le_antisymm (finsetInf L T) (⊥ : L) hT_le_bot hbot_le
 
-def filterGen (F : MyFilter B) (a : B) : MyFilter B where
+def filterGen (F : ThesisFilter B) (a : B) : ThesisFilter B where
   carrier := filterGenSet F a
   top_mem := by
     have h1 : ⊤ ∧ a = a := by
@@ -171,7 +171,7 @@ def filterGen (F : MyFilter B) (a : B) : MyFilter B where
     have h3 : ∃ f ∈ F, f ⊓ a ≤ (⊤ : B) := by
       use ⊤
       constructor
-      · apply MyFilter.top_mem
+      · apply ThesisFilter.top_mem
       exact OrderLattice.inf_le_left (⊤ : B) a
     exact Set.mem_preimage.mp h3
   upwards_closed := by
@@ -214,7 +214,7 @@ def filterGen (F : MyFilter B) (a : B) : MyFilter B where
       have h3 : (x' ⊓ a ) ≤ x := by
         exact le_of_eq_of_le rfl hx''
       rw [h1]
-      exact MyPartialOrder.le_trans (x' ⊓ a ⊓ y') (x' ⊓ a) x h2 hx''
+      exact ThesisPartialOrder.le_trans (x' ⊓ a ⊓ y') (x' ⊓ a) x h2 hx''
     have hyy : (x' ⊓ y') ⊓ a ≤ y := by
       have h1 : (x' ⊓ y') ⊓ a =y'⊓ a ⊓ x' := by
         rw [← AlgebraicLattice.inf_assoc]
@@ -224,7 +224,7 @@ def filterGen (F : MyFilter B) (a : B) : MyFilter B where
       have h3 : (x' ⊓ a ) ≤ x := by
         exact le_of_eq_of_le rfl hx''
       rw [h1]
-      exact MyPartialOrder.le_trans (y' ⊓ a ⊓ x') (y' ⊓ a) y h2 hy''
+      exact ThesisPartialOrder.le_trans (y' ⊓ a ⊓ x') (y' ⊓ a) y h2 hy''
     have hhxxyy : x' ⊓ y' ⊓ a ≤ x ⊓ y := by
       exact OrderLattice.le_inf x y (x' ⊓ y' ⊓ a) hxx hyy
     have hex : ∃ f ∈ F, f ⊓ a ≤ x ⊓ y := by
@@ -237,24 +237,24 @@ def filterGen (F : MyFilter B) (a : B) : MyFilter B where
     exact Set.mem_preimage.mp hex
 
 -- Määritelmä 2.3.5
-structure MyUltraFilter
+structure ThesisUltrafilter
   (L : Type)
   [OrderLattice L]
-  [BoundedAlgebraicLattice L] extends MyFilter L where
+  [BoundedAlgebraicLattice L] extends ThesisFilter L where
   proper : carrier ≠ Set.univ
-  maximal : ∀ U : MyFilter L, carrier ⊆ U.carrier → (U.carrier = Set.univ ∨ U.carrier = carrier)
+  maximal : ∀ U : ThesisFilter L, carrier ⊆ U.carrier → (U.carrier = Set.univ ∨ U.carrier = carrier)
 
 -- Apulemma: Jos filtteri sisältää alkion a ja sen komplementin x, se sisältää ⊥:n
-lemma filter_bot_mem_of_comp_mem {B : Type} [MyBooleanAlgebra B]
-  (F : MyFilter B) (a x : B) (hcomp : IsComplement a x)
+lemma filter_bot_mem_of_comp_mem {B : Type} [ThesisBooleanAlgebra B]
+  (F : ThesisFilter B) (a x : B) (hcomp : IsComplement a x)
   (ha : a ∈ F.carrier) (hx : x ∈ F.carrier) : (⊥ : B) ∈ F.carrier := by
   have h_inf : a ⊓ x ∈ F.carrier := F.inf_mem a x ha hx
   have h_bot : a ⊓ x = (⊥ : B) := hcomp.right
   rwa [h_bot] at h_inf
 
 -- Apulemma: Jos ⊥ ∈ F.carrier, niin F.carrier = Set.univ
-lemma filter_univ_of_bot_mem {B : Type} [MyBooleanAlgebra B]
-  (F : MyFilter B) (hbot : (⊥ : B) ∈ F.carrier) : F.carrier = Set.univ := by
+lemma filter_univ_of_bot_mem {B : Type} [ThesisBooleanAlgebra B]
+  (F : ThesisFilter B) (hbot : (⊥ : B) ∈ F.carrier) : F.carrier = Set.univ := by
   apply Set.eq_univ_of_univ_subset
   intro x _
   have h_sup : (⊥ : B) ⊔ x = x := by
@@ -264,7 +264,7 @@ lemma filter_univ_of_bot_mem {B : Type} [MyBooleanAlgebra B]
 
 -- Lause 2.3.6 (1)
 theorem ultrafilter_char_1
-  (U : MyUltraFilter B) (a x : B) (hcomp : IsComplement a x) :
+  (U : ThesisUltrafilter B) (a x : B) (hcomp : IsComplement a x) :
   a ∈ U.carrier ↔ x ∉ U.carrier := by
   constructor
   · intro ha
@@ -272,15 +272,15 @@ theorem ultrafilter_char_1
     have hbot : (⊥ : B) ∈ U.carrier := by
       have h_axcomp : a ⊓ x = (⊥ : B) := by
         exact hcomp.right
-      exact filter_bot_mem_of_comp_mem U.toMyFilter a x hcomp ha this
+      exact filter_bot_mem_of_comp_mem U.toThesisFilter a x hcomp ha this
     have huniv : U.carrier = Set.univ := by
-      exact filter_univ_of_bot_mem U.toMyFilter hbot
+      exact filter_univ_of_bot_mem U.toThesisFilter hbot
     have hc : U.carrier ≠ Set.univ := by
       exact U.proper
     contradiction
   · intro hna
     by_contra
-    let Ua := filterGen U.toMyFilter a
+    let Ua := filterGen U.toThesisFilter a
     have hUa_proper : Ua.carrier ≠ Set.univ := by
       intro hUa_univ
       have hbot_in : (⊥ : B) ∈ Ua.carrier := by
@@ -294,7 +294,7 @@ theorem ultrafilter_char_1
           exact BoundedAlgebraicLattice.infBot (f ⊓ a)
         exact (ord_iff_inf (⊥ : B) (f ⊓ a)).mpr haux
       have h_botfa : (⊥ : B) = f⊓ a := by
-        exact MyPartialOrder.le_antisymm (⊥ : B) (f ⊓ a) hbotleq hfa
+        exact ThesisPartialOrder.le_antisymm (⊥ : B) (f ⊓ a) hbotleq hfa
       have hff : f = f ⊓ x := by
         calc
           f = f ⊓ ⊤ := by
@@ -304,14 +304,14 @@ theorem ultrafilter_char_1
               apply hcomp.left
             rw [hh]
           _ = f ⊓ a ⊔ f ⊓ x := by
-            exact MyBooleanAlgebra.inf_distrib f a x
+            exact ThesisBooleanAlgebra.inf_distrib f a x
           _ = (⊥ : B) ⊔ (f ⊓ x) := by
             rw [h_botfa]
           _ = f ⊓ x := by
             rw [AlgebraicLattice.sup_comm]
             exact BoundedAlgebraicLattice.supId (f ⊓ x)
       have hxx : x ∈ U.carrier := by
-        apply MyFilter.upwards_closed U.toMyFilter f x hf
+        apply ThesisFilter.upwards_closed U.toThesisFilter f x hf
         exact (ord_iff_sup f x).mp hff
       contradiction
     have hUa_sub : U.carrier ⊆ Ua.carrier := by
@@ -323,7 +323,7 @@ theorem ultrafilter_char_1
         exact OrderLattice.inf_le_left u a
       exact Set.mem_of_subset_of_mem (fun ⦃a⦄ a_1 ↦ a_1) h
     have hor : Ua.carrier = Set.univ ∨ Ua.carrier = U.carrier := by
-      apply MyUltraFilter.maximal U Ua hUa_sub
+      apply ThesisUltrafilter.maximal U Ua hUa_sub
     have hn_or : ¬(Ua.carrier = Set.univ ∨ Ua.carrier = U.carrier) := by
       push Not
       constructor
@@ -345,15 +345,15 @@ theorem ultrafilter_char_1
       contradiction
     contradiction
 
-lemma ultrafilter_mem_iff_compl_notMem (U : MyUltraFilter B) (a : B) :
+lemma ultrafilter_mem_iff_compl_notMem (U : ThesisUltrafilter B) (a : B) :
     a ∈ U.carrier ↔ aᶜ ∉ U.carrier :=
-  ultrafilter_char_1 U a aᶜ (MyBooleanAlgebra.compl_isComplement a)
+  ultrafilter_char_1 U a aᶜ (ThesisBooleanAlgebra.compl_isComplement a)
 
 -- Lause 2.3.6 (2)
 def ultrafilter_char_2
-  (U : MyFilter B)
+  (U : ThesisFilter B)
   (h : ∀ a x : B, IsComplement a x → a ∈ U.carrier ↔ x ∉ U.carrier) :
-  MyUltraFilter B where
+  ThesisUltrafilter B where
   carrier := U.carrier
   top_mem := U.top_mem
   upwards_closed := U.upwards_closed

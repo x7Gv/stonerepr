@@ -1,18 +1,18 @@
 import Mathlib.Tactic
 
 -- Määritellään tyyppiluokat liitolle ja kohtaamiselle
-class MySup (P : Type) where
+class ThesisSup (P : Type) where
   sup : P → P → P
 
-class MyInf (P : Type) where
+class ThesisInf (P : Type) where
   inf : P → P → P
 
 -- Otetaan käyttöön symbolit
-infixl:68 " ⊔ " => MySup.sup
-infixl:69 " ⊓ " => MyInf.inf
+infixl:68 " ⊔ " => ThesisSup.sup
+infixl:69 " ⊓ " => ThesisInf.inf
 
 -- Määritelmä 2.1.1 (Osittaisjärjestys).
-class MyPartialOrder (P : Type) extends LE P where
+class ThesisPartialOrder (P : Type) extends LE P where
   -- Refleksiivisyys
   le_refl : ∀ a : P, a ≤ a
   -- Antisymmetria
@@ -26,17 +26,17 @@ def toDual {P : Type} (a : P) : Dual P := a
 def ofDual {P : Type} (a : Dual P) : P := a
 
 -- Lause 2.1.8 (Duaalijärjestys).
-instance [MyPartialOrder P] : MyPartialOrder (Dual P) where
+instance [ThesisPartialOrder P] : ThesisPartialOrder (Dual P) where
   -- Määritelmä
   le a b := ofDual b ≤ ofDual a
-  le_refl a := MyPartialOrder.le_refl (ofDual a)
+  le_refl a := ThesisPartialOrder.le_refl (ofDual a)
   le_antisymm a b h1 h2 :=
-    MyPartialOrder.le_antisymm (ofDual a) (ofDual b) h2 h1
+    ThesisPartialOrder.le_antisymm (ofDual a) (ofDual b) h2 h1
   le_trans a b c h1 h2 :=
-    MyPartialOrder.le_trans (ofDual c) (ofDual b) (ofDual a) h2 h1
+    ThesisPartialOrder.le_trans (ofDual c) (ofDual b) (ofDual a) h2 h1
 
 -- Määritelmä 2.1.10 (Hila (Järjestysteoreettinen)).
-class OrderLattice (P : Type) extends MyPartialOrder P, MySup P, MyInf P where
+class OrderLattice (P : Type) extends ThesisPartialOrder P, ThesisSup P, ThesisInf P where
 -- Liitto
   le_sup_left : ∀ a b : P, a ≤ a ⊔ b
   le_sup_right : ∀ a b : P, b ≤ a ⊔ b
@@ -47,7 +47,7 @@ class OrderLattice (P : Type) extends MyPartialOrder P, MySup P, MyInf P where
   le_inf : ∀ a b c : P, c ≤ a → c ≤ b → c ≤ a ⊓ b
 
 -- Määritelmä 2.1.11 (Hila (Algebrallinen)).
-class AlgebraicLattice (L : Type) extends MySup L, MyInf L where
+class AlgebraicLattice (L : Type) extends ThesisSup L, ThesisInf L where
   sup_comm : ∀ a b : L, a ⊔ b = b ⊔ a
   inf_comm : ∀ a b : L, a ⊓ b = b ⊓ a
   sup_assoc : ∀ a b c : L, a ⊔ (b ⊔ c) = (a ⊔ b) ⊔ c
@@ -64,11 +64,11 @@ lemma ord_iff_sup [OrderLattice P] (a b : P) : a ≤ b ↔ a ⊔ b = b := by
     have hleft : b ≤ a ⊔ b := by
       exact OrderLattice.le_sup_right a b
     have hright : a ⊔ b ≤ b := by
-      have hbb : b ≤ b := MyPartialOrder.le_refl b
+      have hbb : b ≤ b := ThesisPartialOrder.le_refl b
       apply OrderLattice.sup_le
       · exact aleb
       exact hbb
-    apply MyPartialOrder.le_antisymm
+    apply ThesisPartialOrder.le_antisymm
     · exact hright
     exact hleft
   · intro h_supb
@@ -84,11 +84,11 @@ theorem ord_iff_inf [OrderLattice P] (a b : P) : a ≤ b ↔ a ⊓ b = a := by
     have hright : a ⊓ b ≤ a := by
       exact OrderLattice.inf_le_left a b
     have hleft : a ≤ a ⊓ b := by
-      have ha : a ≤ a := MyPartialOrder.le_refl a
+      have ha : a ≤ a := ThesisPartialOrder.le_refl a
       apply OrderLattice.le_inf
       · exact ha
       · exact hab
-    apply MyPartialOrder.le_antisymm
+    apply ThesisPartialOrder.le_antisymm
     · exact hright
     · exact hleft
   intro h_infa
@@ -106,76 +106,76 @@ def orderLatticeToAlgebraicLattice (P : Type) [OrderLattice P] : AlgebraicLattic
       OrderLattice.sup_le b a (a ⊔ b) (OrderLattice.le_sup_right a b) (OrderLattice.le_sup_left a b)
     have h2 : a ⊔ b ≤ b ⊔ a :=
       OrderLattice.sup_le a b (b ⊔ a) (OrderLattice.le_sup_right b a) (OrderLattice.le_sup_left b a)
-    exact MyPartialOrder.le_antisymm (a ⊔ b) (b ⊔ a) h2 h1
+    exact ThesisPartialOrder.le_antisymm (a ⊔ b) (b ⊔ a) h2 h1
   inf_comm := by
     intro a b
     have h1 : a ⊓ b ≤ b ⊓ a :=
       OrderLattice.le_inf b a (a ⊓ b) (OrderLattice.inf_le_right a b) (OrderLattice.inf_le_left a b)
     have h2 : b ⊓ a ≤ a ⊓ b :=
       OrderLattice.le_inf a b (b ⊓ a) (OrderLattice.inf_le_right b a) (OrderLattice.inf_le_left b a)
-    exact MyPartialOrder.le_antisymm (a ⊓ b) (b ⊓ a) h1 h2
+    exact ThesisPartialOrder.le_antisymm (a ⊓ b) (b ⊓ a) h1 h2
   sup_assoc := by
     intro a b c
     have h1 : a ⊔ (b ⊔ c) ≤ (a ⊔ b) ⊔ c := by
       apply OrderLattice.sup_le
-      · exact MyPartialOrder.le_trans a (a ⊔ b) ((a ⊔ b) ⊔ c)
+      · exact ThesisPartialOrder.le_trans a (a ⊔ b) ((a ⊔ b) ⊔ c)
           (OrderLattice.le_sup_left a b) (OrderLattice.le_sup_left (a ⊔ b) c)
       · apply OrderLattice.sup_le
-        · exact MyPartialOrder.le_trans b (a ⊔ b) ((a ⊔ b) ⊔ c)
+        · exact ThesisPartialOrder.le_trans b (a ⊔ b) ((a ⊔ b) ⊔ c)
             (OrderLattice.le_sup_right a b) (OrderLattice.le_sup_left (a ⊔ b) c)
         · exact OrderLattice.le_sup_right (a ⊔ b) c
     have h2 : (a ⊔ b) ⊔ c ≤ a ⊔ (b ⊔ c) := by
       apply OrderLattice.sup_le
       · apply OrderLattice.sup_le
         · exact OrderLattice.le_sup_left a (b ⊔ c)
-        · exact MyPartialOrder.le_trans b (b ⊔ c) (a ⊔ (b ⊔ c))
+        · exact ThesisPartialOrder.le_trans b (b ⊔ c) (a ⊔ (b ⊔ c))
             (OrderLattice.le_sup_left b c) (OrderLattice.le_sup_right a (b ⊔ c))
-      · exact MyPartialOrder.le_trans c (b ⊔ c) (a ⊔ (b ⊔ c))
+      · exact ThesisPartialOrder.le_trans c (b ⊔ c) (a ⊔ (b ⊔ c))
           (OrderLattice.le_sup_right b c) (OrderLattice.le_sup_right a (b ⊔ c))
-    exact MyPartialOrder.le_antisymm (a ⊔ (b ⊔ c)) ((a ⊔ b) ⊔ c) h1 h2
+    exact ThesisPartialOrder.le_antisymm (a ⊔ (b ⊔ c)) ((a ⊔ b) ⊔ c) h1 h2
   inf_assoc := by
     intro a b c
     have h1 : a ⊓ (b ⊓ c) ≤ (a ⊓ b) ⊓ c := by
       apply OrderLattice.le_inf
       · apply OrderLattice.le_inf
         · exact OrderLattice.inf_le_left a (b ⊓ c)
-        · exact MyPartialOrder.le_trans (a ⊓ (b ⊓ c)) (b ⊓ c) b
+        · exact ThesisPartialOrder.le_trans (a ⊓ (b ⊓ c)) (b ⊓ c) b
             (OrderLattice.inf_le_right a (b ⊓ c)) (OrderLattice.inf_le_left b c)
-      · exact MyPartialOrder.le_trans (a ⊓ (b ⊓ c)) (b ⊓ c) c
+      · exact ThesisPartialOrder.le_trans (a ⊓ (b ⊓ c)) (b ⊓ c) c
           (OrderLattice.inf_le_right a (b ⊓ c)) (OrderLattice.inf_le_right b c)
     have h2 : (a ⊓ b) ⊓ c ≤ a ⊓ (b ⊓ c) := by
       apply OrderLattice.le_inf
-      · exact MyPartialOrder.le_trans ((a ⊓ b) ⊓ c) (a ⊓ b) a
+      · exact ThesisPartialOrder.le_trans ((a ⊓ b) ⊓ c) (a ⊓ b) a
           (OrderLattice.inf_le_left (a ⊓ b) c) (OrderLattice.inf_le_left a b)
       · apply OrderLattice.le_inf
-        · exact MyPartialOrder.le_trans ((a ⊓ b) ⊓ c) (a ⊓ b) b
+        · exact ThesisPartialOrder.le_trans ((a ⊓ b) ⊓ c) (a ⊓ b) b
             (OrderLattice.inf_le_left (a ⊓ b) c) (OrderLattice.inf_le_right a b)
         · exact OrderLattice.inf_le_right (a ⊓ b) c
-    exact MyPartialOrder.le_antisymm (a ⊓ (b ⊓ c)) ((a ⊓ b) ⊓ c) h1 h2
+    exact ThesisPartialOrder.le_antisymm (a ⊓ (b ⊓ c)) ((a ⊓ b) ⊓ c) h1 h2
   sup_inf_absorb := by
     intro a b
     have hleft : a ≤ a ⊔ (a ⊓ b) := OrderLattice.le_sup_left a (a ⊓ b)
     have hright : a ⊔ (a ⊓ b) ≤ a :=
-      OrderLattice.sup_le a (a ⊓ b) a (MyPartialOrder.le_refl a) (OrderLattice.inf_le_left a b)
-    exact MyPartialOrder.le_antisymm (a ⊔ a ⊓ b) a hright hleft
+      OrderLattice.sup_le a (a ⊓ b) a (ThesisPartialOrder.le_refl a) (OrderLattice.inf_le_left a b)
+    exact ThesisPartialOrder.le_antisymm (a ⊔ a ⊓ b) a hright hleft
   inf_sup_absorb := by
     intro a b
     have hleft : a ⊓ (a ⊔ b) ≤ a := OrderLattice.inf_le_left a (a ⊔ b)
     have hright : a ≤ a ⊓ (a ⊔ b) :=
-      OrderLattice.le_inf a (a ⊔ b) a (MyPartialOrder.le_refl a) (OrderLattice.le_sup_left a b)
-    exact MyPartialOrder.le_antisymm (a ⊓ (a ⊔ b)) a hleft hright
+      OrderLattice.le_inf a (a ⊔ b) a (ThesisPartialOrder.le_refl a) (OrderLattice.le_sup_left a b)
+    exact ThesisPartialOrder.le_antisymm (a ⊓ (a ⊔ b)) a hleft hright
   sup_idem := by
     intro a
     have h1 : a ⊔ a ≤ a :=
-      OrderLattice.sup_le a a a (MyPartialOrder.le_refl a) (MyPartialOrder.le_refl a)
+      OrderLattice.sup_le a a a (ThesisPartialOrder.le_refl a) (ThesisPartialOrder.le_refl a)
     have h2 : a ≤ a ⊔ a := OrderLattice.le_sup_left a a
-    exact MyPartialOrder.le_antisymm (a ⊔ a) a h1 h2
+    exact ThesisPartialOrder.le_antisymm (a ⊔ a) a h1 h2
   inf_idem := by
     intro a
     have h1 : a ⊓ a ≤ a := OrderLattice.inf_le_left a a
     have h2 : a ≤ a ⊓ a :=
-      OrderLattice.le_inf a a a (MyPartialOrder.le_refl a) (MyPartialOrder.le_refl a)
-    exact MyPartialOrder.le_antisymm (a ⊓ a) a h1 h2
+      OrderLattice.le_inf a a a (ThesisPartialOrder.le_refl a) (ThesisPartialOrder.le_refl a)
+    exact ThesisPartialOrder.le_antisymm (a ⊓ a) a h1 h2
 
 -- Lause 2.1.13 (2)
 instance [AlgebraicLattice P] : OrderLattice P where
@@ -244,38 +244,38 @@ instance [AlgebraicLattice P] : OrderLattice P where
 
 -- Määritellään pienimmän ja suurimman alkion tyyppiluokat ja merkintä
 
-class MyBot (L : Type) where
+class ThesisBot (L : Type) where
   bot : L
 
-class MyTop (L : Type) where
+class ThesisTop (L : Type) where
   top : L
 
-notation "⊥" => MyBot.bot
-notation "⊤" => MyTop.top
+notation "⊥" => ThesisBot.bot
+notation "⊤" => ThesisTop.top
 
 -- Määritelmä 2.2.1 (Rajoitettu hila).
-class BoundedAlgebraicLattice (L : Type) extends AlgebraicLattice L, MyTop L, MyBot L where
-  supTop : ∀ x : L, x ⊔ ⊤ = MyTop.top
-  infBot : ∀ x : L, x ⊓ ⊥ = MyBot.bot
+class BoundedAlgebraicLattice (L : Type) extends AlgebraicLattice L, ThesisTop L, ThesisBot L where
+  supTop : ∀ x : L, x ⊔ ⊤ = ThesisTop.top
+  infBot : ∀ x : L, x ⊓ ⊥ = ThesisBot.bot
   supId : ∀ x : L, x ⊔ ⊥ = x
   infId : ∀ x : L, x ⊓ ⊤ = x
 
 -- Määritelmä 2.2.2 (Komplementti)
 def IsComplement [BoundedAlgebraicLattice L] (a x : L) : Prop :=
-  a ⊔ x = MyTop.top ∧ a ⊓ x = MyBot.bot
+  a ⊔ x = ThesisTop.top ∧ a ⊓ x = ThesisBot.bot
 
 -- Määritelmä 2.2.3 (Komplementtihila)
 class ComplementedAlgebraicLattice (L : Type) extends BoundedAlgebraicLattice L where
   exists_comp : ∀ a : L, ∃ x : L, IsComplement a x
 
 -- Määritelmä 2.2.4 (Boolen algebra).
-class MyBooleanAlgebra (B : Type) extends ComplementedAlgebraicLattice B, Compl B where
+class ThesisBooleanAlgebra (B : Type) extends ComplementedAlgebraicLattice B, Compl B where
   sup_distrib : ∀ a b c : B, a ⊔ (b ⊓ c) = (a ⊔ b) ⊓ (a ⊔ c)
   inf_distrib : ∀ a b c : B, a ⊓ (b ⊔ c) = (a ⊓ b) ⊔ (a ⊓ c)
   compl_isComplement : ∀ a : B, IsComplement a aᶜ
 
 -- Lemma 2.2.4
-lemma complement_unique [MyBooleanAlgebra B] (a x y : B)
+lemma complement_unique [ThesisBooleanAlgebra B] (a x y : B)
   (hx : IsComplement a x) (hy : IsComplement a y) : x = y := by
   have x_le : x ≤ y := by
     have h : x = x ⊓ y := by
@@ -283,7 +283,7 @@ lemma complement_unique [MyBooleanAlgebra B] (a x y : B)
         x = x ⊔ (x ⊓ a) := by
           exact Eq.symm (AlgebraicLattice.sup_inf_absorb x a)
         _ = (x ⊔ x) ⊓ (x ⊔ a) := by
-          exact MyBooleanAlgebra.sup_distrib x x a
+          exact ThesisBooleanAlgebra.sup_distrib x x a
         _ = (x) ⊓ (x ⊔ a) := by
           rw [AlgebraicLattice.sup_idem]
         _ = x ⊓ ( ⊤ ) := by
@@ -291,7 +291,7 @@ lemma complement_unique [MyBooleanAlgebra B] (a x y : B)
         _ = x ⊓ ( y ⊔ a ) := by
           rw [AlgebraicLattice.sup_comm, hy.left]
         _ = (x ⊓ y) ⊔ (x ⊓ a) := by
-          exact MyBooleanAlgebra.inf_distrib x y a
+          exact ThesisBooleanAlgebra.inf_distrib x y a
         _ = (x ⊓ y) ⊔ ( ⊥ ) := by
           rw [AlgebraicLattice.inf_comm x a, hx.right]
         _ = (x ⊓ y) := by
@@ -303,7 +303,7 @@ lemma complement_unique [MyBooleanAlgebra B] (a x y : B)
         y = y ⊔ (y ⊓ a) := by
           exact Eq.symm (AlgebraicLattice.sup_inf_absorb y a)
         _ = (y ⊔ y) ⊓ (y ⊔ a) := by
-          exact MyBooleanAlgebra.sup_distrib y y a
+          exact ThesisBooleanAlgebra.sup_distrib y y a
         _ = (y) ⊓ (y ⊔ a) := by
           rw [AlgebraicLattice.sup_idem]
         _ = y ⊓ ( ⊤ ) := by
@@ -311,45 +311,45 @@ lemma complement_unique [MyBooleanAlgebra B] (a x y : B)
         _ = y ⊓ ( x ⊔ a ) := by
           rw [AlgebraicLattice.sup_comm, hx.left]
         _ = (y ⊓ x) ⊔ (y ⊓ a) := by
-          exact MyBooleanAlgebra.inf_distrib y x a
+          exact ThesisBooleanAlgebra.inf_distrib y x a
         _ = (y ⊓ x) ⊔ ( ⊥ ) := by
           rw [AlgebraicLattice.inf_comm y a, hy.right]
         _ = (y ⊓ x) := by
           rw [AlgebraicLattice.inf_comm, BoundedAlgebraicLattice.supId]
     exact (ord_iff_inf y x).mpr (id (Eq.symm h))
-  exact MyPartialOrder.le_antisymm x y x_le y_le
+  exact ThesisPartialOrder.le_antisymm x y x_le y_le
 
 -- Lemma 2.2.4 (komplementin yksikäsitteisyys) ja komplementtioperaatio
-lemma MyBooleanAlgebra.compl_sup [MyBooleanAlgebra B] (a : B) : a ⊔ aᶜ = (⊤ : B) :=
-  (MyBooleanAlgebra.compl_isComplement a).left
+lemma ThesisBooleanAlgebra.compl_sup [ThesisBooleanAlgebra B] (a : B) : a ⊔ aᶜ = (⊤ : B) :=
+  (ThesisBooleanAlgebra.compl_isComplement a).left
 
-lemma MyBooleanAlgebra.compl_inf [MyBooleanAlgebra B] (a : B) : a ⊓ aᶜ = (⊥ : B) :=
-  (MyBooleanAlgebra.compl_isComplement a).right
+lemma ThesisBooleanAlgebra.compl_inf [ThesisBooleanAlgebra B] (a : B) : a ⊓ aᶜ = (⊥ : B) :=
+  (ThesisBooleanAlgebra.compl_isComplement a).right
 
-lemma MyBooleanAlgebra.compl_eq_of_isComplement [MyBooleanAlgebra B] {a x : B}
+lemma ThesisBooleanAlgebra.compl_eq_of_isComplement [ThesisBooleanAlgebra B] {a x : B}
     (hx : IsComplement a x) : x = aᶜ :=
-  complement_unique a x aᶜ hx (MyBooleanAlgebra.compl_isComplement a)
+  complement_unique a x aᶜ hx (ThesisBooleanAlgebra.compl_isComplement a)
 
-lemma MyBooleanAlgebra.compl_compl [MyBooleanAlgebra B] (a : B) : (aᶜ)ᶜ = a := by
+lemma ThesisBooleanAlgebra.compl_compl [ThesisBooleanAlgebra B] (a : B) : (aᶜ)ᶜ = a := by
   have h : IsComplement (aᶜ) a := by
-    have ha := MyBooleanAlgebra.compl_isComplement a
+    have ha := ThesisBooleanAlgebra.compl_isComplement a
     exact ⟨AlgebraicLattice.sup_comm a aᶜ ▸ ha.left, AlgebraicLattice.inf_comm a aᶜ ▸ ha.right⟩
-  exact (MyBooleanAlgebra.compl_eq_of_isComplement h).symm
+  exact (ThesisBooleanAlgebra.compl_eq_of_isComplement h).symm
 
 -- Lemma 2.2.5 (De Morganin lait)
-lemma demorgan_sup [MyBooleanAlgebra B] (a b : B) :
+lemma demorgan_sup [ThesisBooleanAlgebra B] (a b : B) :
     IsComplement (a ⊔ b) (aᶜ ⊓ bᶜ) := by
-  have ha := MyBooleanAlgebra.compl_isComplement a
-  have hb := MyBooleanAlgebra.compl_isComplement b
+  have ha := ThesisBooleanAlgebra.compl_isComplement a
+  have hb := ThesisBooleanAlgebra.compl_isComplement b
   constructor
-  · rw [MyBooleanAlgebra.sup_distrib]
+  · rw [ThesisBooleanAlgebra.sup_distrib]
     have h1 : (a ⊔ b) ⊔ aᶜ = (⊤ : B) := by
       rw [AlgebraicLattice.sup_comm a b, ← AlgebraicLattice.sup_assoc, ha.left,
         BoundedAlgebraicLattice.supTop]
     have h2 : (a ⊔ b) ⊔ bᶜ = (⊤ : B) := by
       rw [← AlgebraicLattice.sup_assoc, hb.left, BoundedAlgebraicLattice.supTop]
     rw [h1, h2, AlgebraicLattice.inf_idem]
-  · rw [AlgebraicLattice.inf_comm (a ⊔ b), MyBooleanAlgebra.inf_distrib]
+  · rw [AlgebraicLattice.inf_comm (a ⊔ b), ThesisBooleanAlgebra.inf_distrib]
     have h1 : (aᶜ ⊓ bᶜ) ⊓ a = (⊥ : B) := by
       rw [AlgebraicLattice.inf_comm aᶜ bᶜ, ← AlgebraicLattice.inf_assoc,
         AlgebraicLattice.inf_comm aᶜ a, ha.right, BoundedAlgebraicLattice.infBot]
@@ -358,12 +358,12 @@ lemma demorgan_sup [MyBooleanAlgebra B] (a b : B) :
         BoundedAlgebraicLattice.infBot]
     rw [h1, h2, AlgebraicLattice.sup_idem]
 
-lemma demorgan_inf [MyBooleanAlgebra B] (a b : B) :
+lemma demorgan_inf [ThesisBooleanAlgebra B] (a b : B) :
     IsComplement (a ⊓ b) (aᶜ ⊔ bᶜ) := by
-  have ha := MyBooleanAlgebra.compl_isComplement a
-  have hb := MyBooleanAlgebra.compl_isComplement b
+  have ha := ThesisBooleanAlgebra.compl_isComplement a
+  have hb := ThesisBooleanAlgebra.compl_isComplement b
   constructor
-  · rw [AlgebraicLattice.sup_comm (a ⊓ b), MyBooleanAlgebra.sup_distrib]
+  · rw [AlgebraicLattice.sup_comm (a ⊓ b), ThesisBooleanAlgebra.sup_distrib]
     have h1 : (aᶜ ⊔ bᶜ) ⊔ a = (⊤ : B) := by
       rw [AlgebraicLattice.sup_comm aᶜ bᶜ, ← AlgebraicLattice.sup_assoc,
         AlgebraicLattice.sup_comm aᶜ a, ha.left, BoundedAlgebraicLattice.supTop]
@@ -371,7 +371,7 @@ lemma demorgan_inf [MyBooleanAlgebra B] (a b : B) :
       rw [← AlgebraicLattice.sup_assoc, AlgebraicLattice.sup_comm bᶜ b, hb.left,
         BoundedAlgebraicLattice.supTop]
     rw [h1, h2, AlgebraicLattice.inf_idem]
-  · rw [MyBooleanAlgebra.inf_distrib]
+  · rw [ThesisBooleanAlgebra.inf_distrib]
     have h1 : (a ⊓ b) ⊓ aᶜ = (⊥ : B) := by
       rw [AlgebraicLattice.inf_comm a b, ← AlgebraicLattice.inf_assoc, ha.right,
         BoundedAlgebraicLattice.infBot]
@@ -379,14 +379,14 @@ lemma demorgan_inf [MyBooleanAlgebra B] (a b : B) :
       rw [← AlgebraicLattice.inf_assoc, hb.right, BoundedAlgebraicLattice.infBot]
     rw [h1, h2, AlgebraicLattice.sup_idem]
 
-lemma MyBooleanAlgebra.compl_sup_eq [MyBooleanAlgebra B] (a b : B) : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ :=
-  (MyBooleanAlgebra.compl_eq_of_isComplement (demorgan_sup a b)).symm
+lemma ThesisBooleanAlgebra.compl_sup_eq [ThesisBooleanAlgebra B] (a b : B) : (a ⊔ b)ᶜ = aᶜ ⊓ bᶜ :=
+  (ThesisBooleanAlgebra.compl_eq_of_isComplement (demorgan_sup a b)).symm
 
-lemma MyBooleanAlgebra.compl_inf_eq [MyBooleanAlgebra B] (a b : B) : (a ⊓ b)ᶜ = aᶜ ⊔ bᶜ :=
-  (MyBooleanAlgebra.compl_eq_of_isComplement (demorgan_inf a b)).symm
+lemma ThesisBooleanAlgebra.compl_inf_eq [ThesisBooleanAlgebra B] (a b : B) : (a ⊓ b)ᶜ = aᶜ ⊔ bᶜ :=
+  (ThesisBooleanAlgebra.compl_eq_of_isComplement (demorgan_inf a b)).symm
 
 -- Määritelmä 2.2.5 (Boolen homomorfismi).
-structure BooleanHom (B B' : Type) [MyBooleanAlgebra B] [MyBooleanAlgebra B'] where
+structure BooleanHom (B B' : Type) [ThesisBooleanAlgebra B] [ThesisBooleanAlgebra B'] where
   -- Kuvaus
   toFun : B → B'
   -- Säilyttää liiton
@@ -396,12 +396,12 @@ structure BooleanHom (B B' : Type) [MyBooleanAlgebra B] [MyBooleanAlgebra B'] wh
   -- Säilyttää komplementin
   map_comp : ∀ (a : B) {a' : B}, IsComplement a a' → IsComplement (toFun a) (toFun a')
 
-instance [MyBooleanAlgebra B] [MyBooleanAlgebra B'] :
+instance [ThesisBooleanAlgebra B] [ThesisBooleanAlgebra B'] :
   CoeFun (BooleanHom B B') (fun _ ↦ B → B') where
     coe h := h.toFun
 
 -- Lause 2.2.9 (1)
-lemma map_top [MyBooleanAlgebra B] [MyBooleanAlgebra B'] (h : BooleanHom B B') :
+lemma map_top [ThesisBooleanAlgebra B] [ThesisBooleanAlgebra B'] (h : BooleanHom B B') :
   h ⊤ = (⊤ : B') := by
   have ⟨x, hx⟩ := ComplementedAlgebraicLattice.exists_comp (⊤ : B)
   have hx_top : (⊤ : B) ⊔ x = (⊤ : B) := hx.left
@@ -416,7 +416,7 @@ lemma map_top [MyBooleanAlgebra B] [MyBooleanAlgebra B'] (h : BooleanHom B B') :
   exact h_calc
 
 -- Lause 2.2.9 (2)
-lemma map_bot [MyBooleanAlgebra B] [MyBooleanAlgebra B'] (h : BooleanHom B B') :
+lemma map_bot [ThesisBooleanAlgebra B] [ThesisBooleanAlgebra B'] (h : BooleanHom B B') :
   h ⊥ = (⊥ : B') := by
   have ⟨x, hx⟩ := ComplementedAlgebraicLattice.exists_comp (⊥ : B)
   have hx_bot : (⊥ : B) ⊓  x = (⊥ : B) := hx.right
